@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import MaintenanceCountdown from './MaintenanceCountdown';
+import MaintenanceFilters from './MaintenanceFilters';
 
 interface MaintenanceRecord {
   id: string;
@@ -14,10 +15,54 @@ interface Props {
 }
 
 export default function MaintenanceHistory({ records }: Props) {
-  const sortedRecords = [...records].sort((a, b) => 
-    new Date(a.created_at.split(' ')[0].split('/').reverse().join('-')).getTime() -
-    new Date(b.created_at.split(' ')[0].split('/').reverse().join('-')).getTime()
-  );
+  const [filteredRecords, setFilteredRecords] = useState(records);
+  const seatIds = useMemo(() => [...new Set(records.map(r => r.seatId))].sort(), [records]);
+
+  const handleFilterChange = (filters: any) => {
+    let result = [...records];
+
+    // Filtro por data
+    if (filters.startDate) {
+      result = result.filter(record => {
+        const recordDate = new Date(record.created_at.split(' ')[0].split('/').reverse().join('-'));
+        return recordDate >= new Date(filters.startDate);
+      });
+    }
+
+    if (filters.endDate) {
+      result = result.filter(record => {
+        const recordDate = new Date(record.created_at.split(' ')[0].split('/').reverse().join('-'));
+        return recordDate <= new Date(filters.endDate);
+      });
+    }
+
+    // Filtro por status
+    if (filters.status !== 'all') {
+      result = result.filter(record => record.status === filters.status);
+    }
+
+    // Filtro por cadeira
+    if (filters.seatId) {
+      result = result.filter(record => record.seatId === filters.seatId);
+    }
+
+    // Filtro por termo de busca
+    if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      result = result.filter(record =>
+        record.observation.toLowerCase().includes(searchLower) ||
+        record.seatId.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Ordenar por data
+    result.sort((a, b) => 
+      new Date(b.created_at.split(' ')[0].split('/').reverse().join('-')).getTime() -
+      new Date(a.created_at.split(' ')[0].split('/').reverse().join('-')).getTime()
+    );
+
+    setFilteredRecords(result);
+  };
 
   const getStatusLabel = (status: 'good' | 'minor' | 'urgent') => {
     switch (status) {
@@ -55,11 +100,14 @@ export default function MaintenanceHistory({ records }: Props) {
   return (
     <div className="bg-white dark:bg-dark-800 rounded-lg shadow-xl p-4 md:p-6 h-[400px] md:h-[600px] overflow-y-auto transition-colors duration-200">
       <h2 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100">Histórico de Manutenções</h2>
-      {sortedRecords.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Nenhuma manutenção registrada</p>
+      
+      <MaintenanceFilters onFilterChange={handleFilterChange} seatIds={seatIds} />
+      
+      {filteredRecords.length === 0 ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Nenhuma manutenção encontrada</p>
       ) : (
         <div className="space-y-3">
-          {sortedRecords.map((record) => (
+          {filteredRecords.map((record) => (
             <div key={record.id} className="bg-gray-50 dark:bg-dark-700/50 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-dark-600 transition-colors duration-200">
               <div className="flex flex-col space-y-1.5">
                 {/* Cabeçalho com ID da cadeira */}
@@ -91,6 +139,7 @@ export default function MaintenanceHistory({ records }: Props) {
           ))}
         </div>
       )}
+      
       <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
         <MaintenanceCountdown />
       </div>
