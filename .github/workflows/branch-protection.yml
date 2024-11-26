@@ -1,0 +1,25 @@
+name: Branch Protection Rules
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  protect-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Protect main branch
+        uses: benjefferies/branch-protection-bot@master
+        if: github.ref == 'refs/heads/main'
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          enforce-admins: false
+          required-status-checks: true
+          required-approvals: 1
+          dismiss-stale-reviews: true
