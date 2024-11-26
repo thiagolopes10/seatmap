@@ -3,7 +3,7 @@ import { AlertCircle, CheckCircle, Clock, Trash2, RefreshCw } from 'lucide-react
 import MaintenanceHistory from './MaintenanceHistory';
 import ThemeToggle from './ThemeToggle';
 import type { Seat, Block } from '../types';
-import { API_URL } from '../config';
+import { API_URL, DEFAULT_HEADERS } from '../config';
 
 const blocks: Block[] = [
   { id: 'left', rows: 9, seatsPerRow: 3, prefix: 'E', label: 'Bloco Esquerdo' },
@@ -25,8 +25,7 @@ export default function SeatMap() {
       const response = await fetch(`${API_URL}/get-maintenance-history.php`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+          ...DEFAULT_HEADERS,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
@@ -54,54 +53,36 @@ export default function SeatMap() {
       const response = await fetch(`${API_URL}/get-seats.php`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+          ...DEFAULT_HEADERS,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       
-      // Verifica se os dados são válidos
-      if (!Array.isArray(data)) {
-        console.error('Formato de dados inválido:', data);
-        throw new Error('Formato de dados inválido');
+      if (data.success) {
+        setSeats(data.seats || {});
+      } else {
+        throw new Error(data.message || 'Erro ao carregar assentos');
       }
-
-      // Converte o array em um objeto usando seatId como chave
-      const seatsObject = data.reduce((acc: Record<string, Seat>, seat: any) => {
-        if (seat && seat.seatId) {
-          acc[seat.seatId] = {
-            ...seat,
-            status: seat.status || 'good',
-            observation: seat.observation || ''
-          };
-        }
-        return acc;
-      }, {});
-
-      console.log('Assentos carregados:', seatsObject);
-      setSeats(seatsObject);
-      setError(null);
     } catch (error) {
       console.error('Erro ao carregar assentos:', error);
-      setError('Erro ao carregar os assentos');
+      setError('Erro ao carregar assentos. Por favor, tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Função para carregar tudo
   const loadAll = async () => {
     setLoading(true);
     try {
-      // Carrega os assentos primeiro
       await loadSeats();
-      // Depois carrega o histórico
       await loadHistory();
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -110,21 +91,13 @@ export default function SeatMap() {
     }
   };
 
-  // Carrega tudo quando o componente monta
-  useEffect(() => {
-    loadAll();
-  }, []);
-
   const updateSeatStatus = async (status: 'good' | 'minor' | 'urgent') => {
     if (!selectedSeat) return;
 
     try {
       const response = await fetch(`${API_URL}/update-seat.php`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
+        headers: DEFAULT_HEADERS,
         body: JSON.stringify({
           seatId: selectedSeat,
           status,
@@ -139,7 +112,6 @@ export default function SeatMap() {
       const data = await response.json();
       
       if (data.success) {
-        // Atualizar o estado dos assentos
         setSeats(prev => ({
           ...prev,
           [selectedSeat]: {
@@ -149,7 +121,6 @@ export default function SeatMap() {
           },
         }));
 
-        // Atualizar o histórico
         await loadHistory();
 
         setSelectedSeat(null);
@@ -210,7 +181,6 @@ export default function SeatMap() {
   };
 
   const renderSeat = (blockId: string, row: number, seat: number) => {
-    // Formata o ID da cadeira corretamente (exemplo: E1-01, M5-01)
     const seatId = `${blockId}${row}-${seat.toString().padStart(2, '0')}`;
     const seatData = seats[seatId];
     const status = seatData?.status || 'good';
@@ -239,6 +209,10 @@ export default function SeatMap() {
     );
   };
 
+  useEffect(() => {
+    loadAll();
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-dark-900 flex items-center justify-center">
@@ -258,7 +232,6 @@ export default function SeatMap() {
   return (
     <div className="p-4 md:p-6 min-h-screen">
       <div className="flex flex-col md:flex-row gap-6 md:gap-8">
-        {/* Lado esquerdo - Mapa de cadeiras */}
         <div className="flex-1 bg-white dark:bg-dark-800 rounded-lg shadow-xl p-4 md:p-6">
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -274,30 +247,25 @@ export default function SeatMap() {
               </button>
             </div>
 
-            {/* Blocos principais (E, M, D) */}
             <div className="w-full overflow-x-auto">
               <div className="flex flex-nowrap justify-start lg:justify-center gap-4 md:gap-6 lg:gap-8 min-w-fit pb-4">
                 {blocks.slice(0, 3).map(renderBlock)}
               </div>
             </div>
 
-            {/* Separador */}
             <div className="w-full border-t border-gray-200 dark:border-dark-600"></div>
 
-            {/* Bloco B centralizado */}
             <div className="flex justify-center">
               {renderBlock(blocks[3])}
             </div>
           </div>
         </div>
 
-        {/* Lado direito - Histórico */}
         <div className="w-full md:w-[400px]">
           <MaintenanceHistory records={maintenanceHistory} />
         </div>
       </div>
 
-      {/* Modal de manutenção */}
       {selectedSeat && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-dark-800 rounded-lg shadow-xl p-6 max-w-md w-full">
