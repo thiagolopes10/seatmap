@@ -1,7 +1,7 @@
 export interface Seat {
   id: string;
-  status: 'good' | 'minor' | 'urgent';
-  observation?: string;
+  status: string;
+  observation: string;
   lastUpdate: Date;
 }
 

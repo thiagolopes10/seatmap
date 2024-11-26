@@ -6,10 +6,11 @@ RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Headers para CORS e Segurança
-Header set Access-Control-Allow-Origin "https://best-onlinestore.site"
+Header set Access-Control-Allow-Origin "*"
 Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization, Origin, X-Requested-With"
 Header set Access-Control-Max-Age "1728000"
+Header set Access-Control-Allow-Credentials "true"
 
 # Se for uma requisição OPTIONS, retornar 200 OK
 RewriteCond %{REQUEST_METHOD} OPTIONS
@@ -19,6 +20,12 @@ RewriteRule ^(.*)$ $1 [R=200,L]
 <FilesMatch "^\.">
     Order allow,deny
     Deny from all
+</FilesMatch>
+
+# Permitir apenas acesso a arquivos específicos
+<FilesMatch "^(get-seats|update-seat|reset-seats)\.php$">
+    Order allow,deny
+    Allow from all
 </FilesMatch>
 
 # Configurações de PHP

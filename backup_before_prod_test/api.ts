@@ -1,7 +1,7 @@
 import type { Seat } from '../types';
 
-// Usando a URL de produção diretamente
-const BASE_URL = 'https://best-onlinestore.site/api';
+// Usando o proxy local configurado no Vite
+const BASE_URL = '/api';
 
 const defaultHeaders = {
   'Content-Type': 'application/x-www-form-urlencoded',
@@ -29,8 +29,7 @@ export const getAllSeats = async (): Promise<Record<string, Seat>> => {
     const response = await fetch(`${BASE_URL}/get-seats.php`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
-        'Origin': 'https://best-onlinestore.site'
+        'Accept': 'application/json'
       }
     });
 
@@ -59,22 +58,23 @@ export const updateSeat = async (seat: Seat): Promise<void> => {
     console.log('Sending seat data:', seat);
 
     // Criar objeto de dados
-    const formData = new FormData();
-    formData.append('id', seat.id);
-    formData.append('status', seat.status);
-    formData.append('observation', seat.observation || '');
-    formData.append('lastUpdate', seat.lastUpdate.toISOString());
+    const data = {
+      id: seat.id,
+      status: seat.status,
+      observation: seat.observation || '',
+      lastUpdate: seat.lastUpdate.toISOString()
+    };
 
     // Log dos dados
-    console.log('Form data:', Object.fromEntries(formData.entries()));
+    console.log('Request data:', data);
 
     const response = await fetch(`${BASE_URL}/update-seat.php`, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Origin': 'https://best-onlinestore.site'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      body: formData
+      body: JSON.stringify(data)
     });
 
     // Log da resposta completa
@@ -98,8 +98,8 @@ export const resetAllSeats = async (): Promise<void> => {
     const response = await fetch(`${BASE_URL}/reset-seats.php`, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Origin': 'https://best-onlinestore.site'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     });
 

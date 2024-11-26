@@ -2,8 +2,10 @@ import React from 'react';
 import { useState } from 'react';
 
 interface FilterProps {
-  onFilterChange: (filters: FilterState) => void;
+  onFilterChange: (filters: any) => void;
   seatIds: string[];
+  blockFilter: 'all' | 'E' | 'M' | 'D' | 'B';
+  setBlockFilter: (value: 'all' | 'E' | 'M' | 'D' | 'B') => void;
 }
 
 interface FilterState {
@@ -14,7 +16,7 @@ interface FilterState {
   searchTerm: string;
 }
 
-export default function MaintenanceFilters({ onFilterChange, seatIds }: FilterProps) {
+export default function MaintenanceFilters({ onFilterChange, seatIds, blockFilter, setBlockFilter }: FilterProps) {
   const [filters, setFilters] = useState<FilterState>({
     startDate: '',
     endDate: '',
@@ -43,7 +45,7 @@ export default function MaintenanceFilters({ onFilterChange, seatIds }: FilterPr
 
   return (
     <div className="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-4 mb-4 space-y-4">
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Data Inicial */}
         <div className="flex-1 min-w-[200px]">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -103,6 +105,27 @@ export default function MaintenanceFilters({ onFilterChange, seatIds }: FilterPr
                 {id}
               </option>
             ))}
+          </select>
+        </div>
+
+        {/* Seletor de Bloco */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Bloco
+          </label>
+          <select
+            value={blockFilter}
+            onChange={(e) => {
+              setBlockFilter(e.target.value as 'all' | 'E' | 'M' | 'D' | 'B');
+              onFilterChange({ ...filters, blockFilter: e.target.value });
+            }}
+            className="w-full p-2 border rounded-lg text-sm bg-white dark:bg-dark-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+          >
+            <option value="all">Todos os blocos</option>
+            <option value="E">Bloco Esquerdo</option>
+            <option value="M">Bloco Meio</option>
+            <option value="D">Bloco Direita</option>
+            <option value="B">Sala B</option>
           </select>
         </div>
       </div>

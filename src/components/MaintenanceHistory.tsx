@@ -16,6 +16,12 @@ interface Props {
 
 export default function MaintenanceHistory({ records }: Props) {
   const [filteredRecords, setFilteredRecords] = useState(records);
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'minor' | 'urgent'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [blockFilter, setBlockFilter] = useState<'all' | 'E' | 'M' | 'D' | 'B'>('all');
+
   const seatIds = useMemo(() => [...new Set(records.map(r => r.seatId))].sort(), [records]);
 
   const handleFilterChange = (filters: any) => {
@@ -55,13 +61,41 @@ export default function MaintenanceHistory({ records }: Props) {
       );
     }
 
+    // Filtro por bloco
+    if (filters.blockFilter !== 'all') {
+      result = result.filter(record => record.id.startsWith(filters.blockFilter));
+    }
+
     // Ordenar por data
-    result.sort((a, b) => 
+    result.sort((a, b) =>
       new Date(b.created_at.split(' ')[0].split('/').reverse().join('-')).getTime() -
       new Date(a.created_at.split(' ')[0].split('/').reverse().join('-')).getTime()
     );
 
     setFilteredRecords(result);
+  };
+
+  const filterRecords = (records: MaintenanceRecord[]) => {
+    return records.filter(record => {
+      const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
+      const matchesSearch = record.observation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          record.id.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesBlock = blockFilter === 'all' || record.id.startsWith(blockFilter);
+
+      const recordDate = new Date(record.created_at);
+      const now = new Date();
+      const isToday = recordDate.toDateString() === now.toDateString();
+      const isThisWeek = (now.getTime() - recordDate.getTime()) / (1000 * 60 * 60 * 24) <= 7;
+      const isThisMonth = recordDate.getMonth() === now.getMonth() &&
+                         recordDate.getFullYear() === now.getFullYear();
+
+      const matchesDate = dateFilter === 'all' ||
+                         (dateFilter === 'today' && isToday) ||
+                         (dateFilter === 'week' && isThisWeek) ||
+                         (dateFilter === 'month' && isThisMonth);
+
+      return matchesStatus && matchesSearch && matchesDate && matchesBlock;
+    });
   };
 
   const getStatusLabel = (status: 'good' | 'minor' | 'urgent') => {
@@ -100,9 +134,9 @@ export default function MaintenanceHistory({ records }: Props) {
   return (
     <div className="bg-white dark:bg-dark-800 rounded-lg shadow-xl p-4 md:p-6 h-[400px] md:h-[600px] overflow-y-auto transition-colors duration-200">
       <h2 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100">Histórico de Manutenções</h2>
-      
-      <MaintenanceFilters onFilterChange={handleFilterChange} seatIds={seatIds} />
-      
+
+      <MaintenanceFilters onFilterChange={handleFilterChange} seatIds={seatIds} blockFilter={blockFilter} setBlockFilter={setBlockFilter} />
+
       {filteredRecords.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Nenhuma manutenção encontrada</p>
       ) : (
@@ -120,7 +154,7 @@ export default function MaintenanceHistory({ records }: Props) {
                     {getStatusLabel(record.status)}
                   </span>
                 </div>
-                
+
                 {/* Observação */}
                 <div className="flex flex-col">
                   <span className="text-xs font-medium text-gray-800 dark:text-gray-200 mb-0.5">OBSERVAÇÃO:</span>
@@ -128,7 +162,7 @@ export default function MaintenanceHistory({ records }: Props) {
                     {record.observation}
                   </p>
                 </div>
-                
+
                 {/* Data */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-800 dark:text-gray-200">REGISTRADO EM:</span>
@@ -139,7 +173,7 @@ export default function MaintenanceHistory({ records }: Props) {
           ))}
         </div>
       )}
-      
+
       <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
         <MaintenanceCountdown />
       </div>
