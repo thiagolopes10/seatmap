@@ -1,5 +1,9 @@
 name: Auto Git Commands
 
+# Adiciona permissões necessárias
+permissions:
+  contents: write
+
 on:
   # Ativa o workflow quando houver alterações em qualquer arquivo
   push:
@@ -35,6 +39,8 @@ jobs:
           fi
           
       - name: Git Push
-        run: git push
+        run: |
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
