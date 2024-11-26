@@ -1,4 +1,5 @@
 import React from 'react';
+import MaintenanceCountdown from './MaintenanceCountdown';
 
 interface MaintenanceRecord {
   id: string;
@@ -90,6 +91,9 @@ export default function MaintenanceHistory({ records }: Props) {
           ))}
         </div>
       )}
+      <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <MaintenanceCountdown />
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './MaintenanceCountdown.css';
 
 const MaintenanceCountdown = () => {
     const [timeLeft, setTimeLeft] = useState({
@@ -39,25 +40,34 @@ const MaintenanceCountdown = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const formatNumber = (num) => {
+        return num.toString().padStart(2, '0');
+    };
+
     return (
         <div className="maintenance-countdown">
-            <h2>Próxima Manutenção Geral</h2>
-            <div className="countdown-container">
-                <div className="countdown-item">
-                    <span className="countdown-value">{timeLeft.days}</span>
-                    <span className="countdown-label">Dias</span>
-                </div>
-                <div className="countdown-item">
-                    <span className="countdown-value">{timeLeft.hours}</span>
-                    <span className="countdown-label">Horas</span>
-                </div>
-                <div className="countdown-item">
-                    <span className="countdown-value">{timeLeft.minutes}</span>
-                    <span className="countdown-label">Minutos</span>
-                </div>
-                <div className="countdown-item">
-                    <span className="countdown-value">{timeLeft.seconds}</span>
-                    <span className="countdown-label">Segundos</span>
+            <div className="countdown-title">Próxima Manutenção Geral</div>
+            <div className="digital-countdown">
+                <div className="countdown-section">
+                    <div className="digit-group">
+                        <div className="digit">{formatNumber(timeLeft.days)}</div>
+                        <div className="digit-label">dias</div>
+                    </div>
+                    <div className="separator">:</div>
+                    <div className="digit-group">
+                        <div className="digit">{formatNumber(timeLeft.hours)}</div>
+                        <div className="digit-label">horas</div>
+                    </div>
+                    <div className="separator">:</div>
+                    <div className="digit-group">
+                        <div className="digit">{formatNumber(timeLeft.minutes)}</div>
+                        <div className="digit-label">min</div>
+                    </div>
+                    <div className="separator">:</div>
+                    <div className="digit-group">
+                        <div className="digit">{formatNumber(timeLeft.seconds)}</div>
+                        <div className="digit-label">seg</div>
+                    </div>
                 </div>
             </div>
         </div>
