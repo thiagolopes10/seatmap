@@ -57,8 +57,9 @@ function App() {
 
         <div className="space-y-6">
           <SeatMap seats={seats} setSeats={setSeats} />
-          <Dashboard records={Object.values(seats)} />
         </div>
+
+        <Dashboard records={Object.values(seats)} />
       </div>
     </div>
   );
