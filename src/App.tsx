@@ -59,7 +59,9 @@ function App() {
           <SeatMap seats={seats} setSeats={setSeats} />
         </div>
 
-        <Dashboard records={Object.values(seats)} />
+        <div className="mb-8">
+          <Dashboard seats={seats} />
+        </div>
       </div>
     </div>
   );
