@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import SeatMap from './components/SeatMap';
+import MaintenanceCountdown from './components/MaintenanceCountdown';
 
 function App() {
   useEffect(() => {
@@ -14,6 +15,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-dark-900">
+      <MaintenanceCountdown />
       <SeatMap />
     </div>
   );

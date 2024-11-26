@@ -7,10 +7,19 @@
     margin: 20px;
 }
 
+.dark .maintenance-countdown {
+    background-color: #1a1a1a;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
 .maintenance-countdown h2 {
     color: #333;
     margin-bottom: 20px;
     font-size: 1.5rem;
+}
+
+.dark .maintenance-countdown h2 {
+    color: #fff;
 }
 
 .countdown-container {
@@ -38,11 +47,21 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.dark .countdown-value {
+    background-color: #2d2d2d;
+    color: #3b82f6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .countdown-label {
     margin-top: 8px;
     color: #666;
     font-size: 0.9rem;
     text-transform: uppercase;
+}
+
+.dark .countdown-label {
+    color: #999;
 }
 
 @media (max-width: 480px) {
